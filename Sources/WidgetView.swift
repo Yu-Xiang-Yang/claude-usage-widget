@@ -27,8 +27,8 @@ private struct LayoutContext {
 struct WidgetView: View {
     @ObservedObject var model: UsageModel
     @ObservedObject var controller: AppController
-    /// Disabled for offscreen rendering, where AppKit-backed views are unsupported.
-    var interactive = true
+    /// True while the pointer is down on the card and has not started to drag it.
+    @State private var pressing = false
 
     var body: some View {
         let size = controller.widgetSize
@@ -48,7 +48,18 @@ struct WidgetView: View {
         .id(controller.language)
         .padding(size.padding)
         .frame(width: size.dimensions.width, height: size.dimensions.height, alignment: .topLeading)
-        .background { if interactive { DragHandle(snap: controller.snapOrigin, onClick: controller.handleClick) } }
+        .contentShape(Rectangle())
+        .opacity(pressing ? 0.88 : 1)
+        .animation(.easeOut(duration: 0.1), value: pressing)
+        // Controls inside the card (refresh, sign-in link) are children and take their own clicks first.
+        // A plain click opens Claude; moving the pointer drags the card, which snaps to the widget grid.
+        .gesture(
+            DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                .onChanged { _ in pressing = !controller.dragChanged() }
+                .onEnded { _ in
+                    pressing = false
+                    controller.dragEnded()
+                })
         .contextMenu {
             Button(tr("立即刷新", "Refresh Now")) { model.refresh(force: true) }
             Picker(tr("尺寸", "Size"), selection: $controller.widgetSize) {
@@ -790,61 +801,5 @@ private struct ModelBar: View {
                 }
             }
         }
-    }
-}
-
-// MARK: - Window dragging with snapping
-
-/// Moves the borderless window by hand so that the proposed position can be snapped while dragging.
-private final class DragHandleView: NSView {
-    var snap: ((NSPoint, NSSize) -> NSPoint)?
-    var onClick: (() -> Void)?
-    private var startMouse = NSPoint.zero
-    private var startOrigin = NSPoint.zero
-    private var dragged = false
-
-    /// Movement below this distance, in points, is still a click and must not move or snap the window.
-    private let dragThreshold: CGFloat = 4
-
-    override var mouseDownCanMoveWindow: Bool { false }
-    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
-
-    override func mouseDown(with event: NSEvent) {
-        startMouse = NSEvent.mouseLocation
-        startOrigin = window?.frame.origin ?? .zero
-        dragged = false
-    }
-
-    override func mouseDragged(with event: NSEvent) {
-        guard let window else { return }
-        let mouse = NSEvent.mouseLocation
-        if !dragged {
-            guard hypot(mouse.x - startMouse.x, mouse.y - startMouse.y) > dragThreshold else { return }
-            dragged = true
-        }
-        let proposed = NSPoint(x: startOrigin.x + mouse.x - startMouse.x,
-                               y: startOrigin.y + mouse.y - startMouse.y)
-        window.setFrameOrigin(snap?(proposed, window.frame.size) ?? proposed)
-    }
-
-    override func mouseUp(with event: NSEvent) {
-        if !dragged { onClick?() }
-    }
-}
-
-private struct DragHandle: NSViewRepresentable {
-    let snap: (NSPoint, NSSize) -> NSPoint
-    let onClick: () -> Void
-
-    func makeNSView(context: Context) -> DragHandleView {
-        let view = DragHandleView()
-        view.snap = snap
-        view.onClick = onClick
-        return view
-    }
-
-    func updateNSView(_ nsView: DragHandleView, context: Context) {
-        nsView.snap = snap
-        nsView.onClick = onClick
     }
 }

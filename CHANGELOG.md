@@ -13,6 +13,11 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 ### Changed
 
 - A pointer movement of less than 4 pt is a click and no longer moves or snaps the widget.
+- The card dims briefly while it is pressed, so a click is visible even when Claude is already in front.
+
+### Fixed
+
+- Clicks and drags were ignored over text, heatmap cells and filled areas (only parts of the card responded). Clicking and dragging is now handled by one gesture on the whole card; the refresh button and the sign-in link keep their own action.
 
 ## [1.0.1] - 2026-10-13
 

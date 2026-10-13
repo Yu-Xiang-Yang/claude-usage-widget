@@ -3,6 +3,11 @@ import SwiftUI
 import Combine
 import ServiceManagement
 
+/// The panel never becomes the active window, so the first click must act instead of only focusing it.
+private final class FirstMouseHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+}
+
 private final class WidgetPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
@@ -55,6 +60,9 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject {
     var showLoginOnLaunch = false
     private var panel: NSPanel?
     private var hosting: NSHostingView<WidgetView>?
+    private var dragStartMouse: NSPoint?
+    private var dragStartOrigin = NSPoint.zero
+    private var dragMoved = false
     private var statusItem: NSStatusItem?
     private var visibilityItem: NSMenuItem?
     private var summaryItem: NSMenuItem?
@@ -96,6 +104,39 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         setVisible(true)
         return true
+    }
+
+    // MARK: Drag and click
+
+    /// Movement below this distance, in points, is still a click and must not move or snap the window.
+    private static let dragThreshold: CGFloat = 4
+
+    /// Called for every pointer event of the gesture on the card; returns true once the card is being dragged.
+    @discardableResult
+    func dragChanged() -> Bool {
+        guard let panel else { return false }
+        let mouse = NSEvent.mouseLocation
+        if dragStartMouse == nil {
+            dragStartMouse = mouse
+            dragStartOrigin = panel.frame.origin
+            dragMoved = false
+        }
+        guard let start = dragStartMouse else { return false }
+        if !dragMoved {
+            guard hypot(mouse.x - start.x, mouse.y - start.y) > Self.dragThreshold else { return false }
+            dragMoved = true
+        }
+        let proposed = NSPoint(x: dragStartOrigin.x + mouse.x - start.x, y: dragStartOrigin.y + mouse.y - start.y)
+        panel.setFrameOrigin(snapOrigin(proposed, panel.frame.size))
+        return true
+    }
+
+    /// A gesture that never moved is a click.
+    func dragEnded() {
+        let wasClick = dragStartMouse != nil && !dragMoved
+        dragStartMouse = nil
+        dragMoved = false
+        if wasClick { handleClick() }
     }
 
     // MARK: Click
@@ -162,7 +203,7 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject {
         panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary]
 
-        let hosting = NSHostingView(rootView: WidgetView(model: model, controller: self))
+        let hosting = FirstMouseHostingView(rootView: WidgetView(model: model, controller: self))
         panel.contentView = Self.makeBackground(wrapping: hosting)
         self.hosting = hosting
         self.panel = panel

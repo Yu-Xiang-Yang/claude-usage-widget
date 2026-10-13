@@ -71,7 +71,7 @@ func renderSnapshot(to path: String) {
 
     let dark = option("--appearance") == "dark"
     let size = controller.widgetSize.dimensions
-    let view = WidgetView(model: model, controller: controller, interactive: false)
+    let view = WidgetView(model: model, controller: controller)
         .frame(width: size.width, height: size.height)
         .background(dark ? Color(white: 0.16) : Color(white: 0.97))
         .clipShape(RoundedRectangle(cornerRadius: WidgetGrid.cornerRadius, style: .continuous))
