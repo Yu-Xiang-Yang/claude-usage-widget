@@ -1,6 +1,6 @@
 #!/bin/bash
 # Builds ClaudeUsageWidget.app into ./build (requires the Xcode Command Line Tools).
-# Usage: ./build.sh            build only
+# Usage: ./build.sh            build only (ARCHS="arm64 x86_64" for a universal binary, VERSION=1.2.3)
 #        ./build.sh install    build and copy the app to /Applications (or ~/Applications)
 set -euo pipefail
 
@@ -15,13 +15,22 @@ SDK="/Library/Developer/CommandLineTools/SDKs/MacOSX26.sdk"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 
-swiftc -O -swift-version 5 \
-    -sdk "$SDK" \
-    -target "$(uname -m)-apple-macos14.0" \
-    Sources/*.swift \
-    -o "$APP/Contents/MacOS/ClaudeUsageWidget"
+# ARCHS selects the architectures ("arm64 x86_64" builds a universal binary); VERSION sets the bundle version.
+ARCHS="${ARCHS:-$(uname -m)}"
+VERSION="${VERSION:-1.0.0}"
+SLICES=()
+for arch in $ARCHS; do
+    swiftc -O -swift-version 5 \
+        -sdk "$SDK" \
+        -target "$arch-apple-macos14.0" \
+        Sources/*.swift \
+        -o "$APP/Contents/MacOS/ClaudeUsageWidget-$arch"
+    SLICES+=("$APP/Contents/MacOS/ClaudeUsageWidget-$arch")
+done
+lipo -create "${SLICES[@]}" -output "$APP/Contents/MacOS/ClaudeUsageWidget"
+rm -f "${SLICES[@]}"
 
-cat > "$APP/Contents/Info.plist" <<'PLIST'
+cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -33,8 +42,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
     <key>CFBundleLocalizations</key><array><string>en</string><string>zh-Hans</string></array>
     <key>CFBundleExecutable</key><string>ClaudeUsageWidget</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>1.0</string>
-    <key>CFBundleVersion</key><string>1</string>
+    <key>CFBundleShortVersionString</key><string>$VERSION</string>
+    <key>CFBundleVersion</key><string>$VERSION</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
     <key>NSHighResolutionCapable</key><true/>

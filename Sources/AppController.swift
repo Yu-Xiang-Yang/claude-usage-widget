@@ -148,6 +148,8 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject {
 
     /// Liquid Glass on macOS 26, the same material as system widgets; frosted glass on earlier systems.
     private static func makeBackground(wrapping content: NSView) -> NSView {
+        // NSGlassEffectView exists in the macOS 26 SDK (Swift 6.2 and later); older toolchains skip it.
+        #if compiler(>=6.2)
         if #available(macOS 26.0, *) {
             let glass = NSGlassEffectView()
             glass.style = .regular
@@ -155,6 +157,7 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject {
             glass.contentView = content
             return glass
         }
+        #endif
         let blur = NSVisualEffectView()
         blur.material = .underWindowBackground
         blur.blendingMode = .behindWindow

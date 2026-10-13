@@ -1,0 +1,19 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: ./build.sh
+      - name: Smoke test
+        run: |
+          codesign --verify --deep --strict build/ClaudeUsageWidget.app
+          echo '{"limits":[{"kind":"session","percent":4,"resets_at":"2026-10-13T14:50:00+00:00"}]}' \
+            | build/ClaudeUsageWidget.app/Contents/MacOS/ClaudeUsageWidget --parse-usage
