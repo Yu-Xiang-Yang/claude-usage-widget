@@ -1,5 +1,10 @@
 ## Install / 安装
 
+**Fastest / 最快**: send [the repository link](https://github.com/Yu-Xiang-Yang/claude-usage-widget) to Claude (Claude Code or the Code tab of the Claude desktop app) and ask it to install the widget, or run `curl -fsSL https://raw.githubusercontent.com/Yu-Xiang-Yang/claude-usage-widget/main/scripts/install.sh | bash`.
+将[仓库链接](https://github.com/Yu-Xiang-Yang/claude-usage-widget)发给 Claude（Claude Code 或桌面应用的 Code 标签页），请它安装；或在终端执行 `curl -fsSL https://raw.githubusercontent.com/Yu-Xiang-Yang/claude-usage-widget/main/scripts/install.sh | bash`。
+
+Manual installation / 手动安装：
+
 1. Download `ClaudeUsageWidget-<version>-macos.zip`, unzip it and move `ClaudeUsageWidget.app` to `/Applications`. The build is universal (Apple silicon and Intel) and needs macOS 14 or later.
    下载 zip，解压后将 `ClaudeUsageWidget.app` 移入 `/Applications`。该构建为通用二进制（Apple 芯片与 Intel），需要 macOS 14 及以上。
 2. The app is ad-hoc signed and not notarized, so macOS blocks the first launch. Remove the quarantine flag once:

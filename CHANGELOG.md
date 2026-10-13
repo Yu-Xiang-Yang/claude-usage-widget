@@ -6,6 +6,7 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ### Added
 
+- `scripts/install.sh` (checksum- and signature-verified installer) and an "Install with Claude" section in the README: the repository link can be sent to Claude, which installs the widget.
 - Clicking the widget opens the Claude app (claude.ai when the app is not installed); the **On Click** menu switches it to the claude.ai usage page or to no action.
 - Refresh button in the header of every size class (previously only the large class had one).
 - Pointing at a heatmap day shows its date, tokens, messages and cost immediately and highlights the cell; the delayed system tooltip was removed.

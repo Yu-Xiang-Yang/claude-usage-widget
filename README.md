@@ -17,7 +17,33 @@ A native macOS desktop widget that shows the plan limits of a Claude subscriptio
 
 > **Disclaimer.** This is an independent project. It is not affiliated with, endorsed by or sponsored by Anthropic. "Claude" is a trademark of Anthropic. Reading the plan limits relies on a web endpoint of claude.ai that is not a documented API (see [Data sources](#data-sources)); it can change or stop working without notice, and its use should be checked against Anthropic's terms.
 
-## Download
+## Install with Claude
+
+The quickest way is to send the link of this repository to Claude (Claude Code, or the Code tab of the Claude desktop app) and ask it to install the widget:
+
+> Install this macOS widget for me: https://github.com/Yu-Xiang-Yang/claude-usage-widget
+
+Claude reads this README, runs the install script (it downloads the latest release, verifies the checksum and the code signature, installs the app into `/Applications` and opens it) and tells you what is left to do. Nothing has to be downloaded in a browser and no Gatekeeper workaround is needed, because only browser downloads are quarantined. Two steps stay with you: signing in to claude.ai (the widget never sees your credentials) and, if wanted, enabling **Launch at Login**.
+
+The same command works in a terminal:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Yu-Xiang-Yang/claude-usage-widget/main/scripts/install.sh | bash
+```
+
+<details>
+<summary>Instructions for Claude and other agents</summary>
+
+1. Check that the machine runs macOS 14 or later (`sw_vers -productVersion`).
+2. Read [`scripts/install.sh`](scripts/install.sh), then run it: `bash scripts/install.sh` in a clone, or the `curl … | bash` command above. It replaces an existing installation and keeps the user's settings and sign-in.
+3. Do not enter credentials for the user. The sign-in to claude.ai is opened from the widget's context menu (**Sign In to claude.ai…**); the user signs in in the window that appears.
+4. Ask before enabling Launch at Login, then run `/Applications/ClaudeUsageWidget.app/Contents/MacOS/ClaudeUsageWidget --login-item on`.
+5. Verify with `pgrep -fl ClaudeUsageWidget` and `/Applications/ClaudeUsageWidget.app/Contents/MacOS/ClaudeUsageWidget --login-item status`.
+6. To uninstall: quit the app, run it once with `--login-item off`, delete `/Applications/ClaudeUsageWidget.app`, and, if the user wants all data removed, delete `~/Library/Application Support/ClaudeUsageWidget` and `~/Library/WebKit/local.claude-usage-widget`.
+
+</details>
+
+## Manual download
 
 1. Open the [latest release](https://github.com/Yu-Xiang-Yang/claude-usage-widget/releases/latest) and download `ClaudeUsageWidget-<version>-macos.zip` (universal: Apple silicon and Intel).
 2. Unzip it and move `ClaudeUsageWidget.app` to `/Applications`.
@@ -168,7 +194,7 @@ CLAUDE_USAGE_WIDGET_DIR=/path ...              # use another data directory
 
 ## Troubleshooting
 
-- **"cannot be opened because the developer cannot be verified"**: see step 3 of [Download](#download).
+- **"cannot be opened because the developer cannot be verified"**: see step 3 of [Manual download](#manual-download), or install through Claude as described above, which avoids the prompt.
 - **The widget is not visible**: it sits above the desktop icons and below normal windows, so a maximized window hides it. Enable **Keep on Top** or show the desktop. If it was hidden from the menu, open the app again from Finder or Spotlight to show it.
 - **The limits show a *Sign in* button**: no sign-in exists or it has expired. Sign in again from the context menu. If a passkey prompt appears in the sign-in window, use a password, a device prompt or an e-mail code instead; the widget hides passkeys because a locally built app cannot complete them.
 - **Percentages differ from the usage page**: the widget refreshes the limits about once a minute, and the usage shown next to them counts Claude Code on this Mac only.

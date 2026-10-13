@@ -17,7 +17,33 @@ macOS 原生桌面小组件，显示 Claude 订阅的 5 小时与每周额度、
 
 > **声明**：本项目为独立项目，与 Anthropic 无隶属、认可或赞助关系。“Claude”为 Anthropic 的商标。额度数据依赖 claude.ai 的一个未公开文档的网页接口（见[数据来源](#数据来源)），该接口可能随时变更或失效，使用前应核对 Anthropic 的服务条款。
 
-## 下载
+## 让 Claude 帮你安装
+
+最快的方式是把本仓库的链接发给 Claude（Claude Code，或 Claude 桌面应用的 Code 标签页），请它安装：
+
+> 请帮我安装这个 macOS 小组件：https://github.com/Yu-Xiang-Yang/claude-usage-widget
+
+Claude 会阅读本 README，运行安装脚本（下载最新发布版，校验校验和与代码签名，将应用安装到 `/Applications` 并打开），并告知剩余步骤。无需在浏览器中下载，也无需处理 Gatekeeper 拦截，因为只有浏览器下载的文件才带隔离标记。需要由你本人完成的只有两步：登录 claude.ai（组件不会接触你的凭据），以及按需启用「登录时启动」。
+
+在终端中同样可以执行：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Yu-Xiang-Yang/claude-usage-widget/main/scripts/install.sh | bash
+```
+
+<details>
+<summary>给 Claude 及其他智能体的说明</summary>
+
+1. 确认系统为 macOS 14 及以上（`sw_vers -productVersion`）。
+2. 先阅读 [`scripts/install.sh`](scripts/install.sh)，再运行：在克隆的仓库中执行 `bash scripts/install.sh`，或使用上面的 `curl … | bash` 命令。脚本会替换已有安装，并保留用户的设置与登录态。
+3. 不要替用户输入凭据。claude.ai 的登录由组件右键菜单中的「登录 claude.ai…」打开，用户在弹出的窗口中自行登录。
+4. 启用「登录时启动」前先征得用户同意，随后执行 `/Applications/ClaudeUsageWidget.app/Contents/MacOS/ClaudeUsageWidget --login-item on`。
+5. 用 `pgrep -fl ClaudeUsageWidget` 与 `/Applications/ClaudeUsageWidget.app/Contents/MacOS/ClaudeUsageWidget --login-item status` 核对结果。
+6. 卸载：退出应用，先以 `--login-item off` 运行一次，删除 `/Applications/ClaudeUsageWidget.app`；若用户要求清除全部数据，再删除 `~/Library/Application Support/ClaudeUsageWidget` 与 `~/Library/WebKit/local.claude-usage-widget`。
+
+</details>
+
+## 手动下载
 
 1. 打开[最新发布页](https://github.com/Yu-Xiang-Yang/claude-usage-widget/releases/latest)，下载 `ClaudeUsageWidget-<版本>-macos.zip`（通用二进制，支持 Apple 芯片与 Intel）。
 2. 解压后将 `ClaudeUsageWidget.app` 移入 `/Applications`。
@@ -168,7 +194,7 @@ CLAUDE_USAGE_WIDGET_DIR=/path ...              # 改用其他数据目录
 
 ## 常见问题
 
-- **「无法打开，因为无法验证开发者」**：见[下载](#下载)第 3 步。
+- **「无法打开，因为无法验证开发者」**：见[手动下载](#手动下载)第 3 步；通过 Claude 安装可避开该提示。
 - **看不到小组件**：它位于桌面图标之上、普通窗口之下，最大化窗口会将其遮挡。可启用「窗口置顶」或显示桌面。若曾通过菜单隐藏，在访达或 Spotlight 中再次打开应用即可显示。
 - **额度处显示「登录」按钮**：尚未登录或登录已失效，请在右键菜单中重新登录。登录窗口若出现通行密钥提示，请改用密码、设备确认或邮箱验证码；本地构建的应用无法完成通行密钥，组件因此将其屏蔽。
 - **百分比与用量页不一致**：组件约每分钟刷新一次额度，额度旁的用量仅统计本机的 Claude Code。
