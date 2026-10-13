@@ -53,6 +53,11 @@ enum L10n {
         date.formatted(Date.FormatStyle(date: .omitted, time: .shortened).locale(locale))
     }
 
+    /// Month and day only, for narrow spaces.
+    static func shortDay(_ date: Date) -> String {
+        date.formatted(Date.FormatStyle().month(.defaultDigits).day().locale(locale))
+    }
+
     static func day(_ date: Date) -> String {
         date.formatted(Date.FormatStyle().year().month().day().weekday(.abbreviated).locale(locale))
     }

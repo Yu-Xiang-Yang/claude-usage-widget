@@ -82,9 +82,13 @@ Until a sign-in exists, the widget shows a local estimate of the 5-hour window a
 
 ## Context menu
 
-Refresh Now · Size · Heatmap Metric (tokens or messages) · Language · Sign In to claude.ai… · Clear Sign-In · Keep on Top · Launch at Login · Hide Widget · Quit.
+Refresh Now · Size · Heatmap Metric (tokens or messages) · On Click · Language · Sign In to claude.ai… · Clear Sign-In · Keep on Top · Launch at Login · Hide Widget · Quit.
 
-Dragging any empty part of the widget moves it. The position and the options are saved.
+- **Click**: a click on the widget opens the Claude app (claude.ai in the browser if the app is not installed). **On Click** switches it to the claude.ai usage page or to no action. Buttons keep their own function.
+- **Drag**: dragging any empty part of the widget moves it; a movement below 4 pt still counts as a click and does not move the widget.
+- **Heatmap**: pointing at a day shows its date, tokens, messages and estimated cost in the heatmap title and highlights the cell.
+- **Refresh**: every size class has a refresh button in its header.
+- The position and the options are saved.
 
 ## Data sources
 

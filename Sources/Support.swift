@@ -223,3 +223,20 @@ enum WidgetGrid {
     /// One grid cell: a small widget plus the 16 pt of space around it.
     static let pitch: CGFloat = 180
 }
+
+// MARK: - Click action
+
+/// What a click on the widget does.
+enum ClickAction: String, CaseIterable, Identifiable {
+    case app, usagePage, nothing
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .app: return tr("打开 Claude 应用", "Open the Claude App")
+        case .usagePage: return tr("打开 claude.ai 用量页", "Open the claude.ai Usage Page")
+        case .nothing: return tr("无操作", "Do Nothing")
+        }
+    }
+}

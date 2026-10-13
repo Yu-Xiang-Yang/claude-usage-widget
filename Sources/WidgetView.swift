@@ -48,7 +48,7 @@ struct WidgetView: View {
         .id(controller.language)
         .padding(size.padding)
         .frame(width: size.dimensions.width, height: size.dimensions.height, alignment: .topLeading)
-        .background { if interactive { DragHandle(snap: controller.snapOrigin) } }
+        .background { if interactive { DragHandle(snap: controller.snapOrigin, onClick: controller.handleClick) } }
         .contextMenu {
             Button(tr("立即刷新", "Refresh Now")) { model.refresh(force: true) }
             Picker(tr("尺寸", "Size"), selection: $controller.widgetSize) {
@@ -57,6 +57,10 @@ struct WidgetView: View {
             .pickerStyle(.inline)
             Picker(tr("热力图指标", "Heatmap Metric"), selection: $controller.heatmapMetric) {
                 ForEach(HeatmapMetric.allCases) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.inline)
+            Picker(tr("点击时", "On Click"), selection: $controller.clickAction) {
+                ForEach(ClickAction.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.inline)
             Picker("语言 / Language", selection: $controller.language) {
@@ -93,7 +97,7 @@ private struct SmallLayout: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
-            Header(title: "Claude", trailing: nil, showsRefresh: false, ctx: ctx)
+            Header(title: "Claude", trailing: nil, showsRefresh: true, ctx: ctx)
             QuotaCompactSection(ctx: ctx)
             Spacer(minLength: 0)
         }
@@ -106,7 +110,7 @@ private struct MediumLayout: View {
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             VStack(alignment: .leading, spacing: 7) {
-                Header(title: "Claude", trailing: nil, showsRefresh: false, ctx: ctx)
+                Header(title: "Claude", trailing: nil, showsRefresh: true, ctx: ctx)
                 QuotaCompactSection(ctx: ctx)
                 Spacer(minLength: 0)
             }
@@ -147,7 +151,7 @@ private struct ExtraLargeLayout: View {
     var body: some View {
         HStack(alignment: .top, spacing: 18) {
             VStack(alignment: .leading, spacing: 10) {
-                Header(title: tr("Claude 用量", "Claude Usage"), trailing: nil, showsRefresh: false, ctx: ctx)
+                Header(title: tr("Claude 用量", "Claude Usage"), trailing: nil, showsRefresh: true, ctx: ctx)
                 QuotaStandardSection(ctx: ctx, extrasAsRows: true)
                 Spacer(minLength: 0)
                 // Two or more per-model rows take the room of the model split.
@@ -507,6 +511,8 @@ private struct Heatmap: View {
     let metric: HeatmapMetric
     let spec: Spec
 
+    @State private var hovered: Date?
+
     private var calendar: Calendar {
         var c = Calendar.current
         c.firstWeekday = 2 // Monday first
@@ -551,19 +557,30 @@ private struct Heatmap: View {
 
         VStack(alignment: .leading, spacing: 5) {
             HStack {
-                Text(spec.title)
-                    .font(.system(size: 10.5))
-                    .foregroundStyle(.secondary)
-                Spacer(minLength: 4)
-                switch spec.legend {
-                case .below:
-                    Text(tr("近 \(weeks) 周活跃 \(active.count) 天", "\(active.count) active days in \(weeks) wk"))
-                        .font(.system(size: 10.5).monospacedDigit())
+                if let date = hovered {
+                    // The day under the pointer replaces the title and the legend, so it is readable at once.
+                    Text(hoverText(date, history[date]))
+                        .font(.system(size: 10.5, weight: .medium).monospacedDigit())
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                    Spacer(minLength: 0)
+                } else {
+                    Text(spec.title)
+                        .font(.system(size: 10.5))
                         .foregroundStyle(.secondary)
-                case .inline: legend(withSpacer: false)
-                case .none: EmptyView()
+                    Spacer(minLength: 4)
+                    switch spec.legend {
+                    case .below:
+                        Text(tr("近 \(weeks) 周活跃 \(active.count) 天", "\(active.count) active days in \(weeks) wk"))
+                            .font(.system(size: 10.5).monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    case .inline: legend(withSpacer: false)
+                    case .none: EmptyView()
+                    }
                 }
             }
+            .frame(height: 13)
             monthLabels(columnDates, cal: cal, cell: cell)
             HStack(alignment: .top, spacing: 4) {
                 weekdayLabels(cell: cell)
@@ -606,19 +623,25 @@ private struct Heatmap: View {
                 .fill(color(level(value, thresholds)))
                 .frame(width: cell, height: cell)
                 .overlay {
-                    if date == today {
+                    if date == today || date == hovered {
                         RoundedRectangle(cornerRadius: radius, style: .continuous)
-                            .strokeBorder(Color.primary.opacity(0.55), lineWidth: 1)
+                            .strokeBorder(Color.primary.opacity(date == hovered ? 0.85 : 0.55), lineWidth: 1)
                     }
                 }
-                .help(tooltip(date, history[date]))
+                .onHover { inside in
+                    if inside { hovered = date } else if hovered == date { hovered = nil }
+                }
         }
     }
 
-    private func tooltip(_ date: Date, _ stat: DayStat?) -> String {
-        let day = L10n.day(date)
-        guard let stat, stat.tokens > 0 else { return tr("\(day)：无记录", "\(day): no activity") }
-        return tr("\(day)：\(formatTokens(stat.tokens)) tokens · \(stat.messages) 条消息 · \(formatCost(stat.cost))", "\(day): \(formatTokens(stat.tokens)) tokens · \(stat.messages) messages · \(formatCost(stat.cost))")
+    /// One line about a day: date, tokens, messages and cost; the narrow variant keeps only date and tokens.
+    private func hoverText(_ date: Date, _ stat: DayStat?) -> String {
+        let narrow = spec.width < 220
+        let day = narrow ? L10n.shortDay(date) : L10n.day(date)
+        guard let stat, stat.tokens > 0 else { return tr("\(day) · 无记录", "\(day) · no activity") }
+        if narrow { return "\(day) · \(formatTokens(stat.tokens))" }
+        return tr("\(day) · \(formatTokens(stat.tokens)) tokens · \(stat.messages) 条 · \(formatCost(stat.cost))",
+                  "\(day) · \(formatTokens(stat.tokens)) tokens · \(stat.messages) msgs · \(formatCost(stat.cost))")
     }
 
     /// Level boundaries at the 25th, 50th and 75th percentile of the active days.
@@ -775,8 +798,13 @@ private struct ModelBar: View {
 /// Moves the borderless window by hand so that the proposed position can be snapped while dragging.
 private final class DragHandleView: NSView {
     var snap: ((NSPoint, NSSize) -> NSPoint)?
+    var onClick: (() -> Void)?
     private var startMouse = NSPoint.zero
     private var startOrigin = NSPoint.zero
+    private var dragged = false
+
+    /// Movement below this distance, in points, is still a click and must not move or snap the window.
+    private let dragThreshold: CGFloat = 4
 
     override var mouseDownCanMoveWindow: Bool { false }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
@@ -784,27 +812,39 @@ private final class DragHandleView: NSView {
     override func mouseDown(with event: NSEvent) {
         startMouse = NSEvent.mouseLocation
         startOrigin = window?.frame.origin ?? .zero
+        dragged = false
     }
 
     override func mouseDragged(with event: NSEvent) {
         guard let window else { return }
         let mouse = NSEvent.mouseLocation
+        if !dragged {
+            guard hypot(mouse.x - startMouse.x, mouse.y - startMouse.y) > dragThreshold else { return }
+            dragged = true
+        }
         let proposed = NSPoint(x: startOrigin.x + mouse.x - startMouse.x,
                                y: startOrigin.y + mouse.y - startMouse.y)
         window.setFrameOrigin(snap?(proposed, window.frame.size) ?? proposed)
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        if !dragged { onClick?() }
     }
 }
 
 private struct DragHandle: NSViewRepresentable {
     let snap: (NSPoint, NSSize) -> NSPoint
+    let onClick: () -> Void
 
     func makeNSView(context: Context) -> DragHandleView {
         let view = DragHandleView()
         view.snap = snap
+        view.onClick = onClick
         return view
     }
 
     func updateNSView(_ nsView: DragHandleView, context: Context) {
         nsView.snap = snap
+        nsView.onClick = onClick
     }
 }

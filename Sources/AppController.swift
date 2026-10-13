@@ -28,6 +28,10 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject {
         }
     }
 
+    @Published var clickAction: ClickAction {
+        didSet { UserDefaults.standard.set(clickAction.rawValue, forKey: "clickAction") }
+    }
+
     @Published var widgetSize: WidgetSize {
         didSet {
             UserDefaults.standard.set(widgetSize.rawValue, forKey: "widgetSize")
@@ -62,6 +66,7 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject {
         launchAtLogin = Self.loginItemEnabled
         heatmapMetric = HeatmapMetric(rawValue: UserDefaults.standard.string(forKey: "heatmapMetric") ?? "") ?? .tokens
         language = L10n.preference
+        clickAction = ClickAction(rawValue: UserDefaults.standard.string(forKey: "clickAction") ?? "") ?? .app
         widgetSize = WidgetSize(rawValue: UserDefaults.standard.string(forKey: "widgetSize") ?? "") ?? .large
         super.init()
     }
@@ -91,6 +96,28 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         setVisible(true)
         return true
+    }
+
+    // MARK: Click
+
+    private static let claudeBundleIdentifier = "com.anthropic.claudefordesktop"
+    private static let claudeWebURL = URL(string: "https://claude.ai")!
+    private static let usagePageURL = URL(string: "https://claude.ai/settings/usage")!
+
+    /// Runs the configured action; the Claude app falls back to claude.ai when it is not installed.
+    func handleClick() {
+        switch clickAction {
+        case .nothing:
+            return
+        case .usagePage:
+            NSWorkspace.shared.open(Self.usagePageURL)
+        case .app:
+            if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: Self.claudeBundleIdentifier) {
+                NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration())
+            } else {
+                NSWorkspace.shared.open(Self.claudeWebURL)
+            }
+        }
     }
 
     // MARK: Sign-in

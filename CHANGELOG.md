@@ -2,6 +2,18 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [semantic versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Clicking the widget opens the Claude app (claude.ai when the app is not installed); the **On Click** menu switches it to the claude.ai usage page or to no action.
+- Refresh button in the header of every size class (previously only the large class had one).
+- Pointing at a heatmap day shows its date, tokens, messages and cost immediately and highlights the cell; the delayed system tooltip was removed.
+
+### Changed
+
+- A pointer movement of less than 4 pt is a click and no longer moves or snaps the widget.
+
 ## [1.0.1] - 2026-10-13
 
 ### Added
