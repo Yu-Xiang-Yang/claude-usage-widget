@@ -28,7 +28,7 @@ A native macOS desktop widget that shows the plan limits of a Claude subscriptio
 | Small | 164 × 164 | 5-hour and weekly limits |
 | Medium | 344 × 164 | Both limits, heatmap, today's usage |
 | Large (default) | 344 × 344 | Both limits (with local window usage and per-model limits), heatmap |
-| Extra Large | 704 × 344 | Large, plus 7/30-day totals, today's token composition and model split |
+| Extra Large | 704 × 344 | Large, with every per-model weekly limit (for example Fable) as a row of its own, plus 7/30-day totals, today's token composition and model split |
 
 <p align="center">
   <img src="docs/images/small-en-light.png" width="164" alt="Small">

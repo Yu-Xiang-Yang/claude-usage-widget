@@ -130,6 +130,8 @@ struct Snapshot {
     /// Local totals inside the server-side windows (reset time minus 5 h / 7 d); nil when the window is unknown or over.
     let fiveHourWindow: Totals?
     let weekWindow: Totals?
+    /// Local totals inside each per-model weekly window, keyed by the window label.
+    let extraWindows: [String: Totals]
     let history: [Date: DayStat]
     let updatedAt: Date
 }
@@ -259,9 +261,14 @@ final class UsageScanner {
         return out
     }
 
-    private func totals(from start: Date, to end: Date) -> Totals {
+    /// Totals of the records inside a window; `model` restricts them to model ids that contain the given name.
+    private func totals(from start: Date, to end: Date, model: String? = nil) -> Totals {
+        let needle = model?.lowercased()
         var t = Totals()
-        for r in records.values where r.timestamp >= start && r.timestamp <= end { t.add(r) }
+        for r in records.values where r.timestamp >= start && r.timestamp <= end {
+            if let needle, !r.model.lowercased().contains(needle) { continue }
+            t.add(r)
+        }
         return t
     }
 
@@ -307,6 +314,11 @@ final class UsageScanner {
             quota: quota,
             fiveHourWindow: quota?.fiveHour.flatMap { $0.resetsAt > now ? totals(from: $0.resetsAt.addingTimeInterval(-Self.blockLength), to: now) : nil },
             weekWindow: quota?.sevenDay.flatMap { $0.resetsAt > now ? totals(from: $0.resetsAt.addingTimeInterval(-7 * 86_400), to: now) : nil },
+            extraWindows: Dictionary(uniqueKeysWithValues: (quota?.extras ?? []).compactMap { extra in
+                extra.window.resetsAt > now
+                    ? (extra.label, totals(from: extra.window.resetsAt.addingTimeInterval(-7 * 86_400), to: now, model: extra.label))
+                    : nil
+            }),
             history: history,
             updatedAt: now)
     }

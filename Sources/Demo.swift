@@ -47,6 +47,7 @@ enum DemoData {
 
         var fiveHour = Totals(); fiveHour.tokens = 48_300_000; fiveHour.cost = 21.6; fiveHour.messages = 150
         var week = Totals(); week.tokens = 612_000_000; week.cost = 301.9; week.messages = 1_850
+        var fable = Totals(); fable.tokens = 41_700_000; fable.cost = 38.2; fable.messages = 120
 
         let days = (0..<7).map { i -> DayBar in
             let d = cal.date(byAdding: .day, value: i - 6, to: today)!
@@ -63,6 +64,6 @@ enum DemoData {
                 ModelShare(name: "Sonnet 5.5", cost: 24, share: 0.21),
                 ModelShare(name: "Other", cost: 8, share: 0.08, isOther: true),
             ],
-            quota: quota, fiveHourWindow: fiveHour, weekWindow: week, history: history, updatedAt: now)
+            quota: quota, fiveHourWindow: fiveHour, weekWindow: week, extraWindows: ["Fable": fable], history: history, updatedAt: now)
     }
 }

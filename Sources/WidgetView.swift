@@ -131,7 +131,7 @@ private struct LargeLayout: View {
         VStack(alignment: .leading, spacing: 8) {
             Header(title: tr("Claude 用量", "Claude Usage"),
                    trailing: "\(tr("今日", "Today")) \(formatTokens(ctx.snapshot.today.tokens))", showsRefresh: true, ctx: ctx)
-            QuotaStandardSection(ctx: ctx, dense: true)
+            QuotaStandardSection(ctx: ctx, extrasAsRows: false)
             Divider().opacity(0.5)
             Heatmap(history: ctx.snapshot.history, metric: ctx.metric,
                     spec: .init(width: 312, cellCap: 11, gap: 3, minCell: 9, minWeeks: 20, maxWeeks: 26,
@@ -148,14 +148,14 @@ private struct ExtraLargeLayout: View {
         HStack(alignment: .top, spacing: 18) {
             VStack(alignment: .leading, spacing: 10) {
                 Header(title: tr("Claude 用量", "Claude Usage"), trailing: nil, showsRefresh: false, ctx: ctx)
-                QuotaStandardSection(ctx: ctx, dense: true)
+                QuotaStandardSection(ctx: ctx, extrasAsRows: true)
                 Spacer(minLength: 0)
-                ModelBar(shares: ctx.snapshot.todayModels)
-                Footer(ctx: ctx)
+                // Two or more per-model rows take the room of the model split.
+                if (ctx.snapshot.quota?.extras.count ?? 0) <= 1 { ModelBar(shares: ctx.snapshot.todayModels) }
             }
             .frame(width: 320)
             Divider().opacity(0.5)
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 8) {
                 Heatmap(history: ctx.snapshot.history, metric: ctx.metric,
                         spec: .init(width: 314, cellCap: 11, gap: 3, minCell: 9, minWeeks: 20, maxWeeks: 26,
                                     labelColumn: 16, title: tr("使用热力图 · 每日 \(ctx.metric.title)", "Activity · daily \(ctx.metric.title)"), legend: .below))
@@ -163,6 +163,7 @@ private struct ExtraLargeLayout: View {
                 PeriodsRow(snapshot: ctx.snapshot)
                 BreakdownRow(totals: ctx.snapshot.today)
                 Spacer(minLength: 0)
+                Footer(ctx: ctx)
             }
             .frame(maxWidth: .infinity)
         }
@@ -300,25 +301,27 @@ private struct LocalCompact: View {
     }
 }
 
-/// Two full quota readouts with local window totals, for the large and extra large classes.
+/// Full quota readouts with local window totals, for the large and extra large classes.
+/// Per-model weekly limits are shown as rows of their own or, when space is short, as a badge on the weekly row.
 private struct QuotaStandardSection: View {
     let ctx: LayoutContext
-    let dense: Bool
+    let extrasAsRows: Bool
 
     var body: some View {
         let s = ctx.snapshot
         TimelineView(.periodic(from: .now, by: 30)) { context in
-            VStack(alignment: .leading, spacing: dense ? 8 : 14) {
+            VStack(alignment: .leading, spacing: 8) {
                 if let quota = s.quota {
                     QuotaRow(title: tr("5 小时额度", "5-hour limit"), window: quota.fiveHour, totals: s.fiveHourWindow,
-                             now: context.date, dense: dense)
+                             now: context.date)
                     QuotaRow(title: tr("每周额度", "Weekly limit"), window: quota.sevenDay, totals: s.weekWindow,
-                             now: context.date, dense: dense,
-                             badge: dense && !quota.extras.isEmpty ? extrasText(quota) : nil)
-                    if !dense && !quota.extras.isEmpty {
-                        Text(tr("按模型每周：", "Per-model weekly: ") + extrasText(quota))
-                            .font(.system(size: 10))
-                            .foregroundStyle(.secondary)
+                             now: context.date,
+                             badge: !extrasAsRows && !quota.extras.isEmpty ? extrasText(quota) : nil)
+                    if extrasAsRows {
+                        ForEach(Array(quota.extras.prefix(2).enumerated()), id: \.offset) { _, extra in
+                            QuotaRow(title: tr("每周 · \(extra.label)", "Weekly · \(extra.label)"),
+                                     window: extra.window, totals: s.extraWindows[extra.label], now: context.date)
+                        }
                     }
                 } else {
                     LocalEstimate(ctx: ctx, now: context.date)
@@ -339,7 +342,6 @@ private struct QuotaRow: View {
     let window: QuotaWindow?
     let totals: Totals?
     let now: Date
-    let dense: Bool
     var badge: String?
 
     var body: some View {
@@ -347,7 +349,7 @@ private struct QuotaRow: View {
         let expired = window.map { $0.resetsAt <= now } ?? false
         let percent = expired ? 0 : (window?.usedPercent ?? 0)
 
-        VStack(alignment: .leading, spacing: dense ? 4 : 7) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 5) {
                 Text(title)
                     .font(.system(size: 11))
@@ -364,7 +366,7 @@ private struct QuotaRow: View {
             }
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text("\(Int(percent.rounded()))")
-                    .font(.system(size: dense ? 24 : 30, weight: .semibold, design: .rounded).monospacedDigit())
+                    .font(.system(size: 24, weight: .semibold, design: .rounded).monospacedDigit())
                 Text("%")
                     .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(.secondary)
