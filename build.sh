@@ -17,7 +17,8 @@ mkdir -p "$APP/Contents/MacOS"
 
 # ARCHS selects the architectures ("arm64 x86_64" builds a universal binary); VERSION sets the bundle version.
 ARCHS="${ARCHS:-$(uname -m)}"
-VERSION="${VERSION:-1.0.0}"
+# Without VERSION the bundle version follows the latest git tag (0.0.0 when there is none).
+VERSION="${VERSION:-$( (git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0) | sed 's/^v//')}"
 SLICES=()
 for arch in $ARCHS; do
     swiftc -O -swift-version 5 \
