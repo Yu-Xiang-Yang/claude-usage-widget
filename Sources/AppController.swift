@@ -87,6 +87,12 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
+    /// Opening the app again (Finder, Spotlight, Dock) shows a hidden widget, since the menu bar item can be hidden by the system.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        setVisible(true)
+        return true
+    }
+
     // MARK: Sign-in
 
     func showLogin() { login.show() }

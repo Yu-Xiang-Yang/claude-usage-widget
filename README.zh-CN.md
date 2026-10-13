@@ -4,14 +4,29 @@
 
 macOS 原生桌面小组件，显示 Claude 订阅的 5 小时与每周额度、类似 GitHub 的使用热力图，以及本机 Claude Code 的 token 用量与估算费用。组件的尺寸、圆角与摆放网格与系统自带的桌面小组件一致。
 
+[![Release](https://img.shields.io/github/v/release/Yu-Xiang-Yang/claude-usage-widget?display_name=tag)](https://github.com/Yu-Xiang-Yang/claude-usage-widget/releases/latest)
+[![Build](https://github.com/Yu-Xiang-Yang/claude-usage-widget/actions/workflows/build.yml/badge.svg)](https://github.com/Yu-Xiang-Yang/claude-usage-widget/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/github/license/Yu-Xiang-Yang/claude-usage-widget)](LICENSE)
+![macOS 14+](https://img.shields.io/badge/macOS-14%2B-blue)
+
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/large-zh-dark.png">
-    <img src="docs/images/large-zh-light.png" width="344" alt="大尺寸小组件：5 小时与每周额度、使用热力图">
-  </picture>
+  <img src="docs/images/hero-zh.png" alt="小、大、中三种尺寸的小组件：5 小时与每周额度、使用热力图">
 </p>
 
 > **声明**：本项目为独立项目，与 Anthropic 无隶属、认可或赞助关系。“Claude”为 Anthropic 的商标。额度数据依赖 claude.ai 的一个未公开文档的网页接口（见[数据来源](#数据来源)），该接口可能随时变更或失效，使用前应核对 Anthropic 的服务条款。
+
+## 下载
+
+1. 打开[最新发布页](https://github.com/Yu-Xiang-Yang/claude-usage-widget/releases/latest)，下载 `ClaudeUsageWidget-<版本>-macos.zip`（通用二进制，支持 Apple 芯片与 Intel）。
+2. 解压后将 `ClaudeUsageWidget.app` 移入 `/Applications`。
+3. 应用采用临时签名且未经公证，首次启动会被系统拦截。执行一次下列命令移除隔离标记：
+
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/ClaudeUsageWidget.app
+   ```
+
+   也可在「系统设置 → 隐私与安全性」中选择「仍要打开」。
+4. 打开应用并按[首次使用](#首次使用)操作。发布页附有校验和，源码即本仓库。
 
 ## 功能
 
@@ -31,11 +46,12 @@ macOS 原生桌面小组件，显示 Claude 订阅的 5 小时与每周额度、
 | 特大 | 704 × 344 | 大尺寸全部内容；按模型的每周额度（如 Fable）各占一行并显示本机在该窗口内的对应用量；另含近 7 / 30 日汇总、今日 token 构成、模型占比 |
 
 <p align="center">
-  <img src="docs/images/small-zh-light.png" width="164" alt="小">
-  <img src="docs/images/medium-zh-light.png" width="344" alt="中">
-</p>
-<p align="center">
-  <img src="docs/images/extraLarge-zh-light.png" width="704" alt="特大">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/large-zh-dark.png">
+    <img src="docs/images/large-zh-light.png" width="344" alt="大尺寸小组件">
+  </picture>
+  <br>
+  <img src="docs/images/sizes-zh.gif" width="520" alt="四档尺寸">
 </p>
 
 ## 环境要求
@@ -44,7 +60,7 @@ macOS 原生桌面小组件，显示 Claude 订阅的 5 小时与每周额度、
 - Xcode 命令行工具（`xcode-select --install`），无需完整 Xcode。
 - 本机用量统计与热力图需要 Claude Code；订阅额度需要 Claude Pro 或 Max 订阅及 claude.ai 登录。
 
-## 构建与安装
+## 从源码构建
 
 ```bash
 git clone https://github.com/Yu-Xiang-Yang/claude-usage-widget.git
@@ -141,6 +157,14 @@ CLAUDE_USAGE_WIDGET_DIR=/path ...              # 改用其他数据目录
 | `Sources/Support.swift` | 额度解析与缓存、每日历史、尺寸定义 |
 | `Sources/Localization.swift` | 语言偏好与格式化 |
 | `Sources/Demo.swift` | 截图用的合成数据 |
+
+## 常见问题
+
+- **「无法打开，因为无法验证开发者」**：见[下载](#下载)第 3 步。
+- **看不到小组件**：它位于桌面图标之上、普通窗口之下，最大化窗口会将其遮挡。可启用「窗口置顶」或显示桌面。若曾通过菜单隐藏，在访达或 Spotlight 中再次打开应用即可显示。
+- **额度处显示「登录」按钮**：尚未登录或登录已失效，请在右键菜单中重新登录。登录窗口若出现通行密钥提示，请改用密码、设备确认或邮箱验证码；本地构建的应用无法完成通行密钥，组件因此将其屏蔽。
+- **百分比与用量页不一致**：组件约每分钟刷新一次额度，额度旁的用量仅统计本机的 Claude Code。
+- **没有菜单栏图标**：系统会隐藏刘海旁放不下的状态栏图标；所有功能也可从小组件的右键菜单使用。
 
 ## 局限
 

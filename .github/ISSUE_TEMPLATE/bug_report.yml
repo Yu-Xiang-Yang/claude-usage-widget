@@ -1,0 +1,50 @@
+name: Bug report
+description: Something does not work or looks wrong
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not paste screenshots or logs that contain personal data (account names, e-mail addresses, organization identifiers). Screenshots rendered with `--demo` are fine.
+  - type: input
+    id: version
+    attributes:
+      label: Widget version
+      description: From the release you downloaded, or the output of `git describe --tags`.
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and chip
+      placeholder: macOS 26.1, Apple M2
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Plan limits (5-hour / weekly)
+        - Sign-in window
+        - Heatmap / local statistics
+        - Layout or size class
+        - Window behaviour (snapping, level, login item)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Size class, language, whether you are signed in, the text shown under the limits, output of `ClaudeUsageWidget --dump` with personal values removed.

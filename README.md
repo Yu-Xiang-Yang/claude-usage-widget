@@ -4,14 +4,29 @@
 
 A native macOS desktop widget that shows the plan limits of a Claude subscription (5-hour and weekly), a GitHub-style activity heatmap, and the token usage and estimated cost of Claude Code on the local machine. The widget follows the size classes, corner radius and grid of the system's own desktop widgets.
 
+[![Release](https://img.shields.io/github/v/release/Yu-Xiang-Yang/claude-usage-widget?display_name=tag)](https://github.com/Yu-Xiang-Yang/claude-usage-widget/releases/latest)
+[![Build](https://github.com/Yu-Xiang-Yang/claude-usage-widget/actions/workflows/build.yml/badge.svg)](https://github.com/Yu-Xiang-Yang/claude-usage-widget/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/github/license/Yu-Xiang-Yang/claude-usage-widget)](LICENSE)
+![macOS 14+](https://img.shields.io/badge/macOS-14%2B-blue)
+
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/large-en-dark.png">
-    <img src="docs/images/large-en-light.png" width="344" alt="Large widget showing the 5-hour and weekly limits and the activity heatmap">
-  </picture>
+  <img src="docs/images/hero-en.png" alt="Small, large and medium widgets showing the 5-hour and weekly limits and the activity heatmap">
 </p>
 
 > **Disclaimer.** This is an independent project. It is not affiliated with, endorsed by or sponsored by Anthropic. "Claude" is a trademark of Anthropic. Reading the plan limits relies on a web endpoint of claude.ai that is not a documented API (see [Data sources](#data-sources)); it can change or stop working without notice, and its use should be checked against Anthropic's terms.
+
+## Download
+
+1. Open the [latest release](https://github.com/Yu-Xiang-Yang/claude-usage-widget/releases/latest) and download `ClaudeUsageWidget-<version>-macos.zip` (universal: Apple silicon and Intel).
+2. Unzip it and move `ClaudeUsageWidget.app` to `/Applications`.
+3. The app is ad-hoc signed and not notarized, so macOS blocks the first launch. Remove the quarantine flag once:
+
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/ClaudeUsageWidget.app
+   ```
+
+   or open System Settings → Privacy & Security and choose *Open Anyway*.
+4. Open the app and follow [First run](#first-run). The release page lists the checksums; the sources are in this repository.
 
 ## Features
 
@@ -31,11 +46,12 @@ A native macOS desktop widget that shows the plan limits of a Claude subscriptio
 | Extra Large | 704 × 344 | Large, with every per-model weekly limit (for example Fable) as a row of its own, plus 7/30-day totals, today's token composition and model split |
 
 <p align="center">
-  <img src="docs/images/small-en-light.png" width="164" alt="Small">
-  <img src="docs/images/medium-en-light.png" width="344" alt="Medium">
-</p>
-<p align="center">
-  <img src="docs/images/extraLarge-en-light.png" width="704" alt="Extra Large">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/large-en-dark.png">
+    <img src="docs/images/large-en-light.png" width="344" alt="Large widget">
+  </picture>
+  <br>
+  <img src="docs/images/sizes-en.gif" width="520" alt="The four size classes">
 </p>
 
 ## Requirements
@@ -44,7 +60,7 @@ A native macOS desktop widget that shows the plan limits of a Claude subscriptio
 - Xcode Command Line Tools (`xcode-select --install`). Full Xcode is not required.
 - Claude Code, if the local usage statistics and the heatmap are wanted. A Claude Pro or Max subscription and a claude.ai sign-in are needed for the plan limits.
 
-## Build and install
+## Build from source
 
 ```bash
 git clone https://github.com/Yu-Xiang-Yang/claude-usage-widget.git
@@ -141,6 +157,14 @@ CLAUDE_USAGE_WIDGET_DIR=/path ...              # use another data directory
 | `Sources/Support.swift` | Quota parser and cache, daily history, size classes |
 | `Sources/Localization.swift` | Language preference and formatting |
 | `Sources/Demo.swift` | Synthetic data for screenshots |
+
+## Troubleshooting
+
+- **"cannot be opened because the developer cannot be verified"**: see step 3 of [Download](#download).
+- **The widget is not visible**: it sits above the desktop icons and below normal windows, so a maximized window hides it. Enable **Keep on Top** or show the desktop. If it was hidden from the menu, open the app again from Finder or Spotlight to show it.
+- **The limits show a *Sign in* button**: no sign-in exists or it has expired. Sign in again from the context menu. If a passkey prompt appears in the sign-in window, use a password, a device prompt or an e-mail code instead; the widget hides passkeys because a locally built app cannot complete them.
+- **Percentages differ from the usage page**: the widget refreshes the limits about once a minute, and the usage shown next to them counts Claude Code on this Mac only.
+- **No menu bar icon**: macOS hides status items that do not fit next to the notch. Everything is also available from the widget's context menu.
 
 ## Limitations
 
