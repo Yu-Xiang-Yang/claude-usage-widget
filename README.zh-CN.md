@@ -2,6 +2,8 @@
 
 [English](README.md) | **简体中文**
 
+<img src="docs/images/icon.png" width="96" align="right" alt="应用图标">
+
 macOS 原生桌面小组件，显示 Claude 订阅的 5 小时与每周额度、类似 GitHub 的使用热力图，以及本机 Claude Code 的 token 用量与估算费用。组件的尺寸、圆角与摆放网格与系统自带的桌面小组件一致。
 
 [![Release](https://img.shields.io/github/v/release/Yu-Xiang-Yang/claude-usage-widget?display_name=tag)](https://github.com/Yu-Xiang-Yang/claude-usage-widget/releases/latest)
@@ -157,6 +159,8 @@ CLAUDE_USAGE_WIDGET_DIR=/path ...              # 改用其他数据目录
 | `Sources/Support.swift` | 额度解析与缓存、每日历史、尺寸定义 |
 | `Sources/Localization.swift` | 语言偏好与格式化 |
 | `Sources/Demo.swift` | 截图用的合成数据 |
+| `Resources/AppIcon.icns` | 应用图标，由 `scripts/make-icon.swift` 生成 |
+| `scripts/` | 图标与文档图片的生成脚本 |
 
 ## 常见问题
 

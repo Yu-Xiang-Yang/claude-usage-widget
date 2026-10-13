@@ -2,6 +2,12 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [semantic versioning](https://semver.org/).
 
+## [1.0.1] - 2026-10-13
+
+### Added
+
+- Application icon (a usage gauge with a four-point star), shown in Finder, Launchpad, Spotlight and the Login Items list.
+
 ## [1.0.0] - 2026-10-13
 
 ### Added
