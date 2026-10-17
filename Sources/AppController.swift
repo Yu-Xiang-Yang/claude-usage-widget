@@ -33,6 +33,10 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject {
         }
     }
 
+    @Published var backgroundDensity: BackgroundDensity {
+        didSet { UserDefaults.standard.set(backgroundDensity.rawValue, forKey: "backgroundDensity") }
+    }
+
     @Published var clickAction: ClickAction {
         didSet { UserDefaults.standard.set(clickAction.rawValue, forKey: "clickAction") }
     }
@@ -74,6 +78,7 @@ final class AppController: NSObject, NSApplicationDelegate, ObservableObject {
         launchAtLogin = Self.loginItemEnabled
         heatmapMetric = HeatmapMetric(rawValue: UserDefaults.standard.string(forKey: "heatmapMetric") ?? "") ?? .tokens
         language = L10n.preference
+        backgroundDensity = BackgroundDensity(rawValue: UserDefaults.standard.string(forKey: "backgroundDensity") ?? "") ?? .dense
         clickAction = ClickAction(rawValue: UserDefaults.standard.string(forKey: "clickAction") ?? "") ?? .app
         widgetSize = WidgetSize(rawValue: UserDefaults.standard.string(forKey: "widgetSize") ?? "") ?? .large
         super.init()

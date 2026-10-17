@@ -2,6 +2,16 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [semantic versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Background** option in the context menu (Standard, Dense, Solid): a tint over the glass that darkens the card and makes it more opaque.
+
+### Changed
+
+- The default card is darker and more opaque (Dense). Standard restores the previous look.
+
 ## [1.1.0] - 2026-10-13
 
 ### Added

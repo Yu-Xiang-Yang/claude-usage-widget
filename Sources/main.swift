@@ -5,7 +5,7 @@ import ServiceManagement
 // Command-line helpers used for verification:
 //   --dump               print the aggregate as JSON and exit
 //   --snapshot <png>     render the widget view to a PNG and exit
-//                        (--size small|medium|large|extraLarge, --lang zh|en, --appearance light|dark, --demo)
+//                        (--size small|medium|large|extraLarge, --lang zh|en, --appearance light|dark, --density standard|dense|solid, --demo)
 //   --parse-usage        parse a usage JSON body from stdin and print the windows
 //   --show-login         open the claude.ai sign-in window at launch
 //   --login-item on|off|status   register, remove or query the login item
@@ -57,6 +57,8 @@ func renderSnapshot(to path: String) {
 
     let controller = AppController()
     if let size = option("--size").flatMap(WidgetSize.init(rawValue:)) { controller.widgetSize = size }
+    // Documentation images use the plain card; a density can be requested to preview it.
+    controller.backgroundDensity = option("--density").flatMap(BackgroundDensity.init(rawValue:)) ?? .standard
 
     let snapshot: Snapshot
     if arguments.contains("--demo") {

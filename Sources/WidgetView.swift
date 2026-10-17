@@ -14,6 +14,32 @@ private let modelPalette: [Color] = [
     Color.gray.opacity(0.6),
 ]
 
+/// How dark and how opaque the card is. The tint lies over the glass material: it darkens the card and
+/// lets less of the wallpaper show through.
+enum BackgroundDensity: String, CaseIterable, Identifiable {
+    case standard, dense, solid
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .standard: return tr("标准", "Standard")
+        case .dense: return tr("加深", "Dense")
+        case .solid: return tr("最深", "Solid")
+        }
+    }
+
+    func tint(for scheme: ColorScheme) -> Color {
+        let alpha: Double
+        switch self {
+        case .standard: return .clear
+        case .dense: alpha = 0.45
+        case .solid: alpha = 0.78
+        }
+        return scheme == .dark ? Color.black.opacity(alpha) : Color(white: 0.86).opacity(alpha)
+    }
+}
+
 /// Everything a layout needs, so that each size class stays a small composition of shared parts.
 private struct LayoutContext {
     let snapshot: Snapshot
@@ -29,6 +55,7 @@ struct WidgetView: View {
     @ObservedObject var controller: AppController
     /// True while the pointer is down on the card and has not started to drag it.
     @State private var pressing = false
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         let size = controller.widgetSize
@@ -48,6 +75,10 @@ struct WidgetView: View {
         .id(controller.language)
         .padding(size.padding)
         .frame(width: size.dimensions.width, height: size.dimensions.height, alignment: .topLeading)
+        .background {
+            RoundedRectangle(cornerRadius: WidgetGrid.cornerRadius, style: .continuous)
+                .fill(controller.backgroundDensity.tint(for: colorScheme))
+        }
         .contentShape(Rectangle())
         .opacity(pressing ? 0.88 : 1)
         .animation(.easeOut(duration: 0.1), value: pressing)
@@ -64,6 +95,10 @@ struct WidgetView: View {
             Button(tr("立即刷新", "Refresh Now")) { model.refresh(force: true) }
             Picker(tr("尺寸", "Size"), selection: $controller.widgetSize) {
                 ForEach(WidgetSize.allCases) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.inline)
+            Picker(tr("背景", "Background"), selection: $controller.backgroundDensity) {
+                ForEach(BackgroundDensity.allCases) { Text($0.title).tag($0) }
             }
             .pickerStyle(.inline)
             Picker(tr("热力图指标", "Heatmap Metric"), selection: $controller.heatmapMetric) {
